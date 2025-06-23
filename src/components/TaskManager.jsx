@@ -2,21 +2,29 @@ import React, { useState, useEffect } from 'react';
 import Button from './Button';
 
 /**
- * Custom hook for managing tasks with localStorage persistence
+ * Custom hook for managing tasks with localStorage persistence and initial custom tasks
  */
 const useLocalStorageTasks = () => {
-  // Initialize state from localStorage or with empty array
-  const [tasks, setTasks] = useState(() => {
-    const savedTasks = localStorage.getItem('tasks');
-    return savedTasks ? JSON.parse(savedTasks) : [];
-  });
+  const [tasks, setTasks] = useState([]);
 
-  // Update localStorage when tasks change
+  // Load custom initial tasks once on mount
+  useEffect(() => {
+    const myInitialTasks = [
+      { id: 1, text: 'Customer sales Tracker', completed: false, createdAt: new Date().toISOString() },
+      { id: 2, text: 'Student present and absent', completed: false, createdAt: new Date().toISOString() },
+      { id: 3, text: 'Exam', completed: false, createdAt: new Date().toISOString() },
+      { id: 4, text: 'Job interview', completed: false, createdAt: new Date().toISOString() },
+      { id: 5, text: 'Rent', completed: false, createdAt: new Date().toISOString() },
+    ];
+
+    setTasks(myInitialTasks);
+    localStorage.setItem('tasks', JSON.stringify(myInitialTasks));
+  }, []);
+
   useEffect(() => {
     localStorage.setItem('tasks', JSON.stringify(tasks));
   }, [tasks]);
 
-  // Add a new task
   const addTask = (text) => {
     if (text.trim()) {
       setTasks([
@@ -31,7 +39,6 @@ const useLocalStorageTasks = () => {
     }
   };
 
-  // Toggle task completion status
   const toggleTask = (id) => {
     setTasks(
       tasks.map((task) =>
@@ -40,7 +47,6 @@ const useLocalStorageTasks = () => {
     );
   };
 
-  // Delete a task
   const deleteTask = (id) => {
     setTasks(tasks.filter((task) => task.id !== id));
   };
@@ -48,22 +54,17 @@ const useLocalStorageTasks = () => {
   return { tasks, addTask, toggleTask, deleteTask };
 };
 
-/**
- * TaskManager component for managing tasks
- */
 const TaskManager = () => {
   const { tasks, addTask, toggleTask, deleteTask } = useLocalStorageTasks();
   const [newTaskText, setNewTaskText] = useState('');
   const [filter, setFilter] = useState('all');
 
-  // Filter tasks based on selected filter
   const filteredTasks = tasks.filter((task) => {
     if (filter === 'active') return !task.completed;
     if (filter === 'completed') return task.completed;
-    return true; // 'all' filter
+    return true;
   });
 
-  // Handle form submission
   const handleSubmit = (e) => {
     e.preventDefault();
     addTask(newTaskText);
@@ -74,7 +75,6 @@ const TaskManager = () => {
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
       <h2 className="text-2xl font-bold mb-6">Task Manager</h2>
 
-      {/* Task input form */}
       <form onSubmit={handleSubmit} className="mb-6">
         <div className="flex gap-2">
           <input
@@ -90,7 +90,6 @@ const TaskManager = () => {
         </div>
       </form>
 
-      {/* Filter buttons */}
       <div className="flex gap-2 mb-4">
         <Button
           variant={filter === 'all' ? 'primary' : 'secondary'}
@@ -115,7 +114,6 @@ const TaskManager = () => {
         </Button>
       </div>
 
-      {/* Task list */}
       <ul className="space-y-2">
         {filteredTasks.length === 0 ? (
           <li className="text-gray-500 dark:text-gray-400 text-center py-4">
@@ -155,14 +153,11 @@ const TaskManager = () => {
         )}
       </ul>
 
-      {/* Task stats */}
       <div className="mt-6 text-sm text-gray-500 dark:text-gray-400">
-        <p>
-          {tasks.filter((task) => !task.completed).length} tasks remaining
-        </p>
+        <p>{tasks.filter((task) => !task.completed).length} tasks remaining</p>
       </div>
     </div>
   );
 };
 
-export default TaskManager; 
+export default TaskManager;
